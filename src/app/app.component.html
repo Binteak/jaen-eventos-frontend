@@ -1,0 +1,427 @@
+
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="Jaén Eventos, inicio">
+      <span class="brand-mark">j<span>.</span></span>
+      <span class="brand-copy">
+        <strong>jaén<span>eventos</span></strong>
+        <small>LA AGENDA DE TU CIUDAD</small>
+      </span>
+    </a>
+
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a class="active" href="#agenda">Agenda</a>
+      <a href="#mapa">Mapa</a>
+      <a href="#fuentes">Fuentes</a>
+    </nav>
+
+    <a class="submit-event"
+       href="mailto:eventos@jaeneventos.es?subject=Proponer%20evento">
+      <span>＋</span> Añadir evento
+    </a>
+  </header>
+
+  <main id="inicio">
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">
+          <span class="live-dot"></span>
+          DESCUBRE TU CIUDAD
+        </div>
+
+        <h1>Jaén tiene<br>mucho <em>que vivir.</em></h1>
+
+        <p>
+          Conciertos, cultura, planes y pequeñas grandes historias.<br>
+          Todo lo que pasa en Jaén, en un mismo lugar.
+        </p>
+
+        <a class="hero-cta" href="#agenda">
+          Explorar eventos <span>↘</span>
+        </a>
+      </div>
+
+      <div class="hero-art" aria-hidden="true">
+        <div class="sun"></div>
+        <div class="hill hill-back"></div>
+        <div class="hill hill-front"></div>
+
+        <div class="cathedral">
+          <div class="tower tower-left"></div>
+          <div class="tower tower-right"></div>
+          <div class="dome"></div>
+          <div class="cathedral-body"></div>
+        </div>
+
+        <div class="hero-sticker">
+          <span>✳</span>
+          <strong>PLANES<br>CON ALMA</strong>
+        </div>
+
+        <div class="hero-note">37° 46' N<br>Jaén, Andalucía</div>
+      </div>
+
+      <div class="hero-bottom">
+        <span>UNA CIUDAD · MIL PLANES</span>
+        <span>DESLIZA PARA DESCUBRIR ↓</span>
+      </div>
+    </section>
+
+    <section class="content-section" id="agenda">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow dark-eyebrow">
+            TU PRÓXIMO PLAN EMPIEZA AQUÍ
+          </div>
+          <h2>¿Qué hacemos <em>hoy?</em></h2>
+        </div>
+
+        <div class="section-side-note">
+          Una agenda viva, local<br>
+          y siempre por descubrir.
+        </div>
+      </div>
+
+      <div class="date-strip" role="group" aria-label="Seleccionar día">
+        @for (date of dateOptions; track date.value) {
+          <button
+            class="date-option"
+            [class.date-selected]="selectedDate === date.value"
+            (click)="chooseDate(date.value)"
+            [attr.aria-pressed]="selectedDate === date.value">
+
+            <span class="date-weekday">{{ date.weekday }}</span>
+            <strong>{{ date.day }}</strong>
+            <span class="date-month">{{ date.month }}</span>
+          </button>
+        }
+
+        <label class="calendar-picker">
+          <span>Ir a fecha</span>
+          <input
+            type="date"
+            [(ngModel)]="selectedDate"
+            (change)="loadEvents()"
+            aria-label="Elegir fecha">
+        </label>
+      </div>
+
+      <div class="filter-row">
+        <div class="category-filters"
+             role="group"
+             aria-label="Filtrar por categoría">
+
+          @for (category of categories; track category.value) {
+            <button
+              class="category-chip"
+              [class.chip-active]="selectedCategory === category.value"
+              (click)="chooseCategory(category.value)">
+              {{ category.label }}
+            </button>
+          }
+        </div>
+
+        <form class="search-box" (ngSubmit)="search()">
+          <span>⌕</span>
+          <input
+            name="searchText"
+            [(ngModel)]="searchText"
+            placeholder="Buscar un plan..."
+            aria-label="Buscar eventos">
+          <button type="submit" aria-label="Buscar">↗</button>
+        </form>
+      </div>
+
+      <div class="results-header">
+        <div>
+          <h3>
+            Planes para descubrir
+            <span class="result-count">{{ filteredEvents.length }}</span>
+          </h3>
+          <p>Ideas locales para aprovechar cada día.</p>
+        </div>
+
+        <button class="reset-button" (click)="resetFilters()">
+          Limpiar filtros ↺
+        </button>
+      </div>
+
+      @if (loading) {
+        <div class="state-panel">
+          <span class="spinner"></span>
+          <strong>Buscando planes...</strong>
+          <p>Estamos preparando la agenda.</p>
+        </div>
+      } @else if (apiError) {
+        <div class="state-panel error-state">
+          <span class="state-icon">⌁</span>
+          <strong>No podemos conectar con la agenda</strong>
+          <p>
+            Comprueba que el backend FastAPI está iniciado
+            y vuelve a intentarlo.
+          </p>
+          <button class="outline-button" (click)="loadEvents()">
+            Reintentar
+          </button>
+        </div>
+      } @else if (!filteredEvents.length) {
+        <div class="state-panel">
+          <span class="state-icon">✳</span>
+          <strong>Aún no hay eventos para este filtro</strong>
+          <p>
+            Prueba otro día o categoría. La agenda crecerá
+            a medida que incorporemos fuentes.
+          </p>
+          <button class="outline-button" (click)="resetFilters()">
+            Ver todos los planes
+          </button>
+        </div>
+      } @else {
+        <div class="event-grid">
+          @for (event of filteredEvents; track trackById($index, event)) {
+            <article
+              class="event-card"
+              [class.card-selected]="selectedEventId === event.id"
+              (click)="selectEvent(event)"
+              (keydown.enter)="selectEvent(event)"
+              tabindex="0">
+
+              <div class="event-art" [attr.data-category]="event.category">
+                @if (event.image_url) {
+                  <img
+                    [src]="event.image_url"
+                    [alt]="'Imagen de ' + event.title"
+                    loading="lazy"
+                    referrerpolicy="no-referrer">
+                } @else {
+                  <div class="art-illustration">
+                    <span class="art-sun"></span>
+                    <span class="art-shape"></span>
+                    <span class="art-symbol">
+                      {{
+                        event.category === 'musica' ? '♫' :
+                        event.category === 'cultura' ? '✳' :
+                        event.category === 'deporte' ? '↗' : '✦'
+                      }}
+                    </span>
+                    <span class="art-word">JAÉN<br>EN VIVO</span>
+                  </div>
+                }
+
+                <span class="category-label">
+                  {{ categoryLabel(event.category) }}
+                </span>
+
+                @if (event.is_sponsored) {
+                  <span class="sponsored-label">Patrocinado</span>
+                }
+              </div>
+
+              <div class="event-card-body">
+                <div class="event-date-line">
+                  <span class="mini-calendar">▦</span>
+                  {{ event.starts_at | date:'EEE d MMM':'':'es-ES' }}
+                  <span class="time-separator">·</span>
+                  {{ formatTime(event.starts_at) }}
+                </div>
+
+                <h4>{{ event.title }}</h4>
+
+                <p class="event-description">
+                  {{
+                    event.description ||
+                    'Descubre los detalles de esta actividad en la fuente original.'
+                  }}
+                </p>
+
+                @if (event.instagram_url) {
+                  <div class="instagram-section">
+                    <div class="instagram-heading">
+                      <span class="instagram-icon">◎</span>
+                      <span>Publicación original de Instagram</span>
+                    </div>
+
+                    <div class="instagram-embed">
+                      <blockquote
+                        class="instagram-media"
+                        [attr.data-instgrm-permalink]="event.instagram_url"
+                        data-instgrm-version="14">
+                        <a
+                          [href]="event.instagram_url"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                          Ver publicación en Instagram
+                        </a>
+                      </blockquote>
+                    </div>
+
+                    <a
+                      class="instagram-open-link"
+                      [href]="event.instagram_url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      (click)="$event.stopPropagation()">
+                      Abrir publicación en Instagram ↗
+                    </a>
+                  </div>
+                }
+
+                <div class="event-meta">
+                  <span>⌖ {{ event.venue || event.address || 'Jaén' }}</span>
+                  <span class="event-price">
+                    {{ event.price_text || 'Consultar' }}
+                  </span>
+                </div>
+
+                <div class="event-card-footer">
+                  <span class="source-name">
+                    Fuente: {{ event.source_name }}
+                  </span>
+
+                  <a
+                    [href]="event.source_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    (click)="$event.stopPropagation()">
+                    Ver detalles ↗
+                  </a>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="map-section" id="mapa">
+      <div class="map-copy">
+        <div class="eyebrow dark-eyebrow">CERCA DE TI</div>
+        <h2>Jaén, sobre<br>el <em>mapa.</em></h2>
+
+        <p>
+          Encuentra tu próximo plan, explora los barrios
+          y descubre qué está pasando a tu alrededor.
+        </p>
+
+        <div class="map-legend">
+          <span><i></i> Eventos con ubicación confirmada</span>
+          <small>
+            Los eventos sin coordenadas aparecen en la agenda,
+            no en el mapa.
+          </small>
+        </div>
+      </div>
+
+      <div class="map-frame">
+        <div
+          #mapElement
+          class="leaflet-map"
+          aria-label="Mapa de eventos de Jaén">
+        </div>
+
+        <div class="map-caption">
+          <span>✳ JAÉN Y ALREDEDORES</span>
+          <span>{{ markers.size }} ubicaciones</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="advertising-section">
+      <div class="ad-icon">✳</div>
+
+      <div class="ad-copy">
+        <span>ESPACIO PARA MARCAS LOCALES</span>
+        <h2>Tu negocio también<br>forma parte de <em>Jaén.</em></h2>
+        <p>
+          Conecta con personas que buscan qué hacer,
+          dónde ir y qué descubrir en la ciudad.
+        </p>
+      </div>
+
+      <a
+        class="ad-cta"
+        href="mailto:publicidad@jaeneventos.es?subject=Publicidad%20en%20Ja%C3%A9n%20Eventos">
+        Anunciar mi negocio <span>↗</span>
+      </a>
+
+      <span class="ad-disclaimer">
+        PUBLICIDAD · ESPACIO PROMOCIONAL
+      </span>
+    </section>
+
+    <section class="sources-section" id="fuentes">
+      <div class="sources-heading">
+        <div>
+          <div class="eyebrow dark-eyebrow">UNA AGENDA CONECTADA</div>
+          <h2>De muchas fuentes,<br><em>un mismo lugar.</em></h2>
+        </div>
+
+        <p>
+          Reunimos información de distintas agendas y organizadores
+          para que no tengas que buscar en diez sitios distintos.
+        </p>
+      </div>
+
+      <div class="source-cards">
+        <div class="source-card">
+          <span class="source-number">01</span>
+          <div class="source-symbol">⌂</div>
+          <h3>Agendas públicas</h3>
+          <p>
+            Información cultural e institucional de fuentes oficiales compatibles.
+          </p>
+          <span class="source-status">
+            <i></i> CONECTOR EN DESARROLLO
+          </span>
+        </div>
+
+        <div class="source-card">
+          <span class="source-number">02</span>
+          <div class="source-symbol">▤</div>
+          <h3>Webs y espacios</h3>
+          <p>
+            Programación de salas, teatros, asociaciones y organizadores.
+          </p>
+          <span class="source-status">
+            <i></i> PRÓXIMAS FUENTES
+          </span>
+        </div>
+
+        <div class="source-card">
+          <span class="source-number">03</span>
+          <div class="source-symbol">◎</div>
+          <h3>Instagram</h3>
+          <p>
+            Publicaciones de organizadores integradas cuando
+            estén disponibles para inserción.
+          </p>
+          <span class="source-status source-planned">
+            <i></i> INTEGRACIÓN EN DESARROLLO
+          </span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a class="brand footer-brand" href="#inicio">
+      <span class="brand-mark">j<span>.</span></span>
+      <span class="brand-copy">
+        <strong>jaén<span>eventos</span></strong>
+        <small>LA AGENDA DE TU CIUDAD</small>
+      </span>
+    </a>
+
+    <p>Hecho con cariño en Jaén. Para vivir Jaén.</p>
+
+    <div>
+      <a href="mailto:contacto@jaeneventos.es">Contacto</a>
+      <a href="#fuentes">Fuentes</a>
+      <a href="mailto:publicidad@jaeneventos.es">Publicidad</a>
+    </div>
+
+    <small class="footer-legal">
+      Proyecto en desarrollo · Verificar fechas y condiciones con cada organizador. Alvaro Ruiz Ramírez
+    </small>
+  </footer>
+</div>
