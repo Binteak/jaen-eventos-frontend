@@ -85,9 +85,9 @@ a {
     letter-spacing: -3px
 }
 
-.brand-mark span {
+/* .brand-mark span {
     color: #6d8141
-}
+} */
 
 .brand-copy {
     display: flex;
@@ -172,7 +172,7 @@ a {
     overflow: hidden
 }
 
-.hero:before {
+/* .hero:before {
     content: '';
     position: absolute;
     width: 440px;
@@ -182,7 +182,7 @@ a {
     right: 19%;
     top: -260px;
     z-index: -1
-}
+} */
 
 .hero-content {
     position: relative;
